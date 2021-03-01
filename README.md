@@ -1,2 +1,3 @@
-# kubeflow-components
-Kubeflow components of the Haumdaucher-Datalab
+# kubeflow-components - Haumdaucher-Datalab
+
+Kubeflow components of the Haumdaucher-Datalab.
