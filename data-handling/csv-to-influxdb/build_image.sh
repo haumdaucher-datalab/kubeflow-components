@@ -1,5 +1,5 @@
 #!/bin/bash -e
-image_name=haumdaucher-datalab/csv-to-influxdb # Specify the image name here
+image_name=haumdaucherdatalab/csv-to-influxdb # Specify the image name here
 image_tag=latest
 full_image_name=${image_name}:${image_tag}
 
