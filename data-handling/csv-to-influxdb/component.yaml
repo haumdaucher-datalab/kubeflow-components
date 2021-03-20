@@ -11,7 +11,7 @@ inputs:
 - {name: username, type: String}
 - {name: password, type: String}
 - {name: separator, type: String, default: ";"}
-- {name: bonusparameter, type: String, optional: True}
+- {name: create, type: String, optional: True}
 implementation:
   container:
     image: haumdaucherdatalab/csv-to-influxdb
@@ -38,4 +38,4 @@ implementation:
     - inputValue: password
     - "-d"
     - inputValue: separator
-    - inputValue: bonusparameter
+    - inputValue: create
