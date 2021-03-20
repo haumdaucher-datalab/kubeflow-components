@@ -1,0 +1,23 @@
+name: translate_character
+description: Executes sed on inputfile and translates characters using tr. Dont forget to escape characters.
+inputs:
+- {name: inputfile, type: Directory}
+- {name: from_character, type: String, default: '\\t'}
+- {name: to_character, type: String,default: ";"}
+outputs:
+- {name: outputfile, type: Directory}
+implementation:
+  container:
+    image: iptizer/swiss
+    command:
+    - sh
+    - -ex
+    - -c
+    - |
+      echo "0 $0 - 1 $1 - 2 $2 - 3 $3"
+      mkdir -p "$(dirname "$3")"
+      cat $0 | tr "$1" "$2" > $3
+    - inputPath: inputfile
+    - inputValue: from_character
+    - inputValue: to_character
+    - outputPath: outputfile
