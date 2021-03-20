@@ -1,122 +1,41 @@
-name: LoadCsv
+name: csv-to-influxdb
+description: Accepts a csv and uses csv-to-influxdb script to insert into influxdb
 inputs:
-- {name: inputfilename}
-- {name: servername}
-- {name: user}
-- {name: password}
-- {name: dbname}
-- {name: metric}
-- {name: timecolumn}
-- {name: timeformat}
-- {name: tagcolumns}
-- {name: fieldcolumns}
-- {name: usegzip}
-- {name: delimiter}
-- {name: batchsize}
-- {name: create}
-- {name: datatimezone}
-- {name: usessl}
+- {name: inputfile, type: Directory}
+- {name: dbname, type: String , default: vaccination}
+- {name: timecolumn, type: String , default: date}
+- {name: timeformat, type: String , default: "%Y-%m-%d"}
+- {name: metricname, type: String}
+- {name: fieldcolumns, type: String}
+- {name: influxdb-host, type: String, default: "influxdb.datalab:8086"}
+- {name: username, type: String}
+- {name: password, type: String}
+- {name: separator, type: String, default: ";"}
+- {name: bonusparameter, type: String, optional: True}
 implementation:
   container:
-    image: python:3.7
+    image: haumdaucherdatalab/csv-to-influxdb
     command:
-    - sh
-    - -ec
-    - |
-      program_path=$(mktemp)
-      printf "%s" "$0" > "$program_path"
-      python3 -u "$program_path" "$@"
-    - "def loadCsv(inputfilename, servername, user, password, dbname, metric, \n \
-      \   timecolumn, timeformat, tagcolumns, fieldcolumns, usegzip, \n    delimiter,\
-      \ batchsize, create, datatimezone, usessl):\n\n    host = servername[0:servername.rfind(':')]\n\
-      \    port = int(servername[servername.rfind(':')+1:])\n    client = InfluxDBClient(host,\
-      \ port, user, password, dbname, ssl=usessl)\n\n    if(create == True):\n   \
-      \     print('Deleting database %s'%dbname)\n        client.drop_database(dbname)\n\
-      \        print('Creating database %s'%dbname)\n        client.create_database(dbname)\n\
-      \n    client.switch_user(user, password)\n\n    # format tags and fields\n \
-      \   if tagcolumns:\n        tagcolumns = tagcolumns.split(',')\n    if fieldcolumns:\n\
-      \        fieldcolumns = fieldcolumns.split(',')\n\n    # open csv\n    datapoints\
-      \ = []\n    inputfile = open(inputfilename, 'r')\n    count = 0\n    with inputfile\
-      \ as csvfile:\n        reader = csv.DictReader(csvfile, delimiter=delimiter)\n\
-      \        for row in reader:\n            datetime_naive = datetime.datetime.strptime(row[timecolumn],timeformat)\n\
-      \n            if datetime_naive.tzinfo is None:\n                datetime_local\
-      \ = timezone(datatimezone).localize(datetime_naive)\n            else:\n   \
-      \             datetime_local = datetime_naive\n\n            timestamp = unix_time_millis(datetime_local)\
-      \ * 1000000 # in nanoseconds\n\n            tags = {}\n            for t in\
-      \ tagcolumns:\n                v = 0\n                if t in row:\n       \
-      \             v = row[t]\n                tags[t] = v\n\n            fields\
-      \ = {}\n            for f in fieldcolumns:\n                v = 0\n        \
-      \        if f in row:\n                    if (isfloat(row[f])):\n         \
-      \               v = float(row[f])\n                    elif (isbool(row[f])):\n\
-      \                        v = str2bool(row[f])\n                    else:\n \
-      \                       v = row[f]\n                fields[f] = v\n\n      \
-      \      point = {\"measurement\": metric, \"time\": timestamp, \"fields\": fields,\
-      \ \"tags\": tags}\n\n            datapoints.append(point)\n            count+=1\n\
-      \n            if len(datapoints) % batchsize == 0:\n                print('Read\
-      \ %d lines'%count)\n                print('Inserting %d datapoints...'%(len(datapoints)))\n\
-      \                response = client.write_points(datapoints)\n\n            \
-      \    if not response:\n                    print('Problem inserting points,\
-      \ exiting...')\n                    exit(1)\n\n                print(\"Wrote\
-      \ %d points, up to %s, response: %s\" % (len(datapoints), datetime_local, response))\n\
-      \n                datapoints = []\n\n    # write rest\n    if len(datapoints)\
-      \ > 0:\n        print('Read %d lines'%count)\n        print('Inserting %d datapoints...'%(len(datapoints)))\n\
-      \        response = client.write_points(datapoints)\n\n        if response ==\
-      \ False:\n            print('Problem inserting points, exiting...')\n      \
-      \      exit(1)\n\n        print(\"Wrote %d, response: %s\" % (len(datapoints),\
-      \ response))\n\n    print('Done')\n\nimport argparse\n_parser = argparse.ArgumentParser(prog='LoadCsv',\
-      \ description='')\n_parser.add_argument(\"--inputfilename\", dest=\"inputfilename\"\
-      , type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
-      --servername\", dest=\"servername\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--user\", dest=\"user\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--password\", dest=\"password\", type=str, required=True,\
-      \ default=argparse.SUPPRESS)\n_parser.add_argument(\"--dbname\", dest=\"dbname\"\
-      , type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
-      --metric\", dest=\"metric\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--timecolumn\", dest=\"timecolumn\", type=str, required=True,\
-      \ default=argparse.SUPPRESS)\n_parser.add_argument(\"--timeformat\", dest=\"\
-      timeformat\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
-      --tagcolumns\", dest=\"tagcolumns\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--fieldcolumns\", dest=\"fieldcolumns\", type=str, required=True,\
-      \ default=argparse.SUPPRESS)\n_parser.add_argument(\"--usegzip\", dest=\"usegzip\"\
-      , type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
-      --delimiter\", dest=\"delimiter\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--batchsize\", dest=\"batchsize\", type=str, required=True,\
-      \ default=argparse.SUPPRESS)\n_parser.add_argument(\"--create\", dest=\"create\"\
-      , type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"\
-      --datatimezone\", dest=\"datatimezone\", type=str, required=True, default=argparse.SUPPRESS)\n\
-      _parser.add_argument(\"--usessl\", dest=\"usessl\", type=str, required=True,\
-      \ default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n\
-      _outputs = loadCsv(**_parsed_args)\n"
-    args:
-    - --inputfilename
-    - {inputValue: inputfilename}
-    - --servername
-    - {inputValue: servername}
-    - --user
-    - {inputValue: user}
-    - --password
-    - {inputValue: password}
-    - --dbname
-    - {inputValue: dbname}
-    - --metric
-    - {inputValue: metric}
-    - --timecolumn
-    - {inputValue: timecolumn}
-    - --timeformat
-    - {inputValue: timeformat}
-    - --tagcolumns
-    - {inputValue: tagcolumns}
-    - --fieldcolumns
-    - {inputValue: fieldcolumns}
-    - --usegzip
-    - {inputValue: usegzip}
-    - --delimiter
-    - {inputValue: delimiter}
-    - --batchsize
-    - {inputValue: batchsize}
-    - --create
-    - {inputValue: create}
-    - --datatimezone
-    - {inputValue: datatimezone}
-    - --usessl
-    - {inputValue: usessl}
+    - python
+    - "./csv-to-influxdb.py"
+    - "--dbname"
+    - inputValue: dbname
+    - "--input"
+    - inputPath: inputfile
+    - "-tc"
+    - inputValue: timecolumn
+    - "-tf"
+    - inputValue: timeformat
+    - "-m"
+    - inputValue: metricname
+    - "--fieldcolumns"
+    - inputValue: fieldcolumns
+    - "-s"
+    - inputValue: influxdb-host
+    - "-u"
+    - inputValue: username
+    - "-p"
+    - inputValue: password
+    - "-d"
+    - inputValue: separator
+    - inputValue: bonusparameter
