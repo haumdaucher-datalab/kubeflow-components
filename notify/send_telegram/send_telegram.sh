@@ -12,4 +12,4 @@ echo "\$2: $2"
 echo "\$3: $3"
 echo "\$4: $4"
 
-telegram-send "$*"
+telegram-send "$1" "$2" "$3" "$4" "$5" "$6" 
