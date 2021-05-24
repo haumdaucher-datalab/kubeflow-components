@@ -6,4 +6,4 @@ token = ${TOKEN}
 chat_id = ${CHAT_ID}
 EOF
 
-telegram-send $1
+telegram-send $@
