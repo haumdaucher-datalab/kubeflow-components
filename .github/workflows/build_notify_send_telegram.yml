@@ -21,6 +21,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Display the path
+        run: |
+          env && ls -l
+        shell: bash
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v2
