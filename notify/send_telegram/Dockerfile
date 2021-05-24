@@ -7,4 +7,4 @@ RUN python -m pip install --upgrade pip && \
     chmod u+x send_telegram.sh
 
 
-CMD ["./send_telegram.sh"]
+ENTRYPOINT ["./send_telegram.sh"]
