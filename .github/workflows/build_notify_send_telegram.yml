@@ -23,7 +23,7 @@ jobs:
 
       - name: Display the path
         run: |
-          env && ls -l
+          env && echo "Working dir:$( pwd)" && echo "dir ls: $( ls -l )" && echo "tree: $( tree )"
         shell: bash
 
       - name: Build and push
