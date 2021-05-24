@@ -8,4 +8,4 @@ COPY send_telegram.py .
 # Syntax check
 RUN python -m py_compile send_telegram.py
 
-CMD ["python","./send_telegram.py"]
+CMD ["python","./send_telegram.sh"]
