@@ -27,6 +27,7 @@ jobs:
         with:
           push: true
           context: "notify/send_telegram/"
+          file: "notify/send_telegram/Dockerfile"
           tags: "haumdaucherdatalab/kubeflow_send_telegram:latest"
           platforms: "linux/arm64,linux/amd64"
 
