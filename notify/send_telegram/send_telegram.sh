@@ -1,3 +1,9 @@
 #!/bin/bash
+mkdir -p /root/.config/
+cat << EOF > /root
+[telegram]
+token = ${TOKEN}
+chat_id = ${CHAT_ID}
+EOF
 
-send-telegram
+telegram-send $1
