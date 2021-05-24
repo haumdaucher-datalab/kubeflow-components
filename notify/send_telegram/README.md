@@ -13,3 +13,17 @@ docker run -e TOKEN=12345:ABCDE -e CHAT_ID=56789 --pull always -it haumdaucherda
 
 The component can be initialized as follows:
 
+```py
+send_telegram_op = comp.load_component_from_url('https://raw.githubusercontent.com/haumdaucher-datalab/kubeflow-components/master/notify/send_telegram/component.yaml')
+```
+
+And may be used in the pipeline function as follows:
+
+```py
+@dsl.pipeline
+def vaccination_pipeline():
+    step = send_telegram_op(msg="First message.",
+                              msg2=step_before.output)
+    step.add_env_variable(V1EnvVar(name='TOKEN', value='12345:ABCDE'))
+    step.add_env_variable(V1EnvVar(name='CHAT_ID', value='567890'))
+```

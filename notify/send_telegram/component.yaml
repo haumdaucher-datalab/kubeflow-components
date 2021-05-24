@@ -1,0 +1,19 @@
+---
+name: send_telegram
+description: Send a msg to Telegram using pypy telegram-send
+inputs:
+- {name: msg, type: String}
+- {name: msg2, type: String, optional: True}
+- {name: msg3, type: String, optional: True}
+- {name: msg4, type: String, optional: True}
+implementation:
+  container:
+    image: haumdaucherdatalab/kubeflow_send_telegram:latest
+    command:
+    - "./send_telegram.sh"
+    - --format
+    - markdown
+    - inputValue: msg
+    - inputValue: msg2
+    - inputValue: msg3
+    - inputValue: msg4
